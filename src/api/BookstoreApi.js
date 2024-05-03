@@ -21,5 +21,9 @@ export class BookstoreApi {
 		// console.log(url);
 		return axios(url);
 	}
+
+	static deleteBookById(id) {
+		return axios.delete(withBaseUrl(`/${id}`));
+	}
 	
 };

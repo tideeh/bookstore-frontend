@@ -3,6 +3,8 @@ import { About } from "./views/About";
 import { Home } from "./views/Home";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BookDetail } from "./views/BookDetail";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
 	return (

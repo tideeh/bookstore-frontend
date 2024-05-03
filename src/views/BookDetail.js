@@ -18,7 +18,7 @@ export const BookDetail = () => {
 	}, []);
 
 	return (
-		<>
+		<main>
 			<h1>{book.title}</h1>
 			
 			<article>
@@ -32,6 +32,6 @@ export const BookDetail = () => {
 			<article>
 				Price: $ {book.price}
 			</article>
-		</>
+		</main>
 	)
 }
