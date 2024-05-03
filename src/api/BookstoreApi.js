@@ -13,7 +13,7 @@ export class BookstoreApi {
 	static getAllBooks(title, order) {
 		let path = '?title='+(title ? title : '')+'&order='+(order ? order : '');
 		let url = withBaseUrl(path);
-		console.log(url);
+		// console.log(url);
 		return axios(url);
 	}
 
@@ -23,6 +23,10 @@ export class BookstoreApi {
 
 	static createBook(newBook) {
 		return axios.post(withBaseUrl(``), newBook);
+	}
+
+	static updateBookById(id, book) {
+		return axios.put(withBaseUrl(`/${id}`), book);
 	}
 	
 };

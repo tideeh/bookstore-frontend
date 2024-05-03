@@ -9,6 +9,7 @@ import { BookstoreApi } from "../api/BookstoreApi";
 import { LinkWithoutDecoration } from "../styles/LinkWithoutDecoration";
 import { BooksTableContainer } from "../styles/BooksTableContainer";
 import "../styles/alertaConfirmacao.css";
+import { TextEditable } from "../components/TextEditable";
 
 export const Home = () => {
 	const [searchParams] = useSearchParams();
@@ -16,13 +17,27 @@ export const Home = () => {
 	const order = searchParams.get('order');
 
 	const [books, setBooks] = useState([]);
+	const [alertaDeletar, setAlertaDeletar] = useState(false);
+	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
+
+	const inputTiteRef     = useRef(null);
+	const inputAuthorRef   = useRef(null);
+	const inputCategoryRef = useRef(null);
+	const inputLanguageRef = useRef(null);
+	const inputPriceRef    = useRef(null);
+
+	useEffect(() => {
+		fetchBooks();
+	}, []);
+
 	const fetchBooks = async () => {
 		BookstoreApi.getAllBooks(title, order)
 			.then((response) => {
 				let result = response.data.codigo;
 				let message = response.data.mensagem;
+				let bookArray = response.data.resultado;
 				if (result == 1) {
-					setBooks(res.data.resultado);
+					setBooks(bookArray);
 				} else {
 					toast.error(`There was an error: ${message}`, {
 						position: "top-center",
@@ -36,22 +51,14 @@ export const Home = () => {
 				});
 			});
 	}
-	useEffect(() => {
-		fetchBooks();
-	}, []);
-
-	const [alertaDeletar, setAlertaDeletar] = useState(false);
-	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
-
-	const inputTiteRef		= useRef(null);
-	const inputAuthorRef	= useRef(null);
-	const inputCategoryRef	= useRef(null);
 
 	const addBook = () => {
-		let newTitle		= inputTiteRef.current.value ? inputTiteRef.current.value.trim() : null;
-		let newAuthor		= inputAuthorRef.current.value ? inputAuthorRef.current.value.trim() : null;
-		let newCategory		= inputCategoryRef.current.value ? inputCategoryRef.current.value.trim() : null;
-		if(!newTitle || !newAuthor || !newCategory) {
+		let newTitle = inputTiteRef.current.value        ? inputTiteRef.current.value.trim()     : null;
+		let newAuthor = inputAuthorRef.current.value     ? inputAuthorRef.current.value.trim()   : null;
+		let newCategory = inputCategoryRef.current.value ? inputCategoryRef.current.value.trim() : null;
+		let newLanguage = inputLanguageRef.current.value ? inputLanguageRef.current.value.trim() : null;
+		let newPrice = inputPriceRef.current.value       ? inputPriceRef.current.value.trim()    : null;
+		if (!newTitle || !newAuthor || !newCategory || !newLanguage || !newPrice) {
 			toast.error(`Preencher os campos obrigatórios`, {
 				position: "top-center",
 				autoClose: 3000
@@ -60,9 +67,11 @@ export const Home = () => {
 		}
 
 		let newBook = {
-			title:		newTitle,
-			author:		newAuthor,
-			category:	newCategory
+			title: newTitle,
+			author: newAuthor,
+			category: newCategory,
+			language: newLanguage,
+			price: newPrice
 		}
 		// console.log(newBook);
 
@@ -76,9 +85,11 @@ export const Home = () => {
 						autoClose: 3000
 					});
 					fetchBooks();
-					inputTiteRef.current.value		= "";
-					inputAuthorRef.current.value	= "";
-					inputCategoryRef.current.value	= "";
+					inputTiteRef.current.value     = "";
+					inputAuthorRef.current.value   = "";
+					inputCategoryRef.current.value = "";
+					inputLanguageRef.current.value = "";
+					inputPriceRef.current.value    = "";
 				} else {
 					toast.error(`There was an error: ${message}`, {
 						position: "top-center",
@@ -93,9 +104,9 @@ export const Home = () => {
 			});
 	}
 
-	const deleteBook = (book) => {
+	const deleteBook = (deleteBook) => {
 		setAlertaDeletar(true);
-		setBookAlertaDeletar(book);
+		setBookAlertaDeletar(deleteBook);
 	}
 
 	const confirmDeleteBook = () => {
@@ -122,6 +133,41 @@ export const Home = () => {
 				});
 			}).finally(() => {
 				setAlertaDeletar(false);
+			});
+	}
+
+	const onEditHandler = (id, key, newValue) => {
+		let bookEditing = books.find((book, index) => {
+			if (book.id === id) {
+				books[index][key] = newValue;
+				return true;
+			}
+		});
+	}
+
+	const updateBook = (id) => {
+		let bookUpdate = books.find(book => book.id === id);
+		BookstoreApi.updateBookById(id, bookUpdate)
+			.then((response) => {
+				let result = response.data.codigo;
+				let message = response.data.mensagem;
+				if (result == 1) {
+					toast.success(`Book '${bookUpdate.title}' updated successfully`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+					fetchBooks();
+				} else {
+					toast.error(`There was an error: ${message}`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+				}
+			}).catch((error) => {
+				toast.error(`There was an error: ${error.message}`, {
+					position: "top-center",
+					autoClose: 3000
+				});
 			});
 	}
 
@@ -155,7 +201,7 @@ export const Home = () => {
 				<thead>
 					<tr>
 						<td style={{ width: "5%" }}></td>
-						<td style={{ width: "45%" }}>
+						<td style={{ width: "35%" }}>
 							<InputGroup hasValidation className="mb-3">
 								<Form.Control
 									type="text"
@@ -164,7 +210,7 @@ export const Home = () => {
 								/>
 							</InputGroup>
 						</td>
-						<td style={{ width: "25%" }}>
+						<td style={{ width: "17%" }}>
 							<InputGroup className="mb-3">
 								<Form.Control
 									type="text"
@@ -173,7 +219,7 @@ export const Home = () => {
 								/>
 							</InputGroup>
 						</td>
-						<td style={{ width: "10%" }}>
+						<td style={{ width: "15%" }}>
 							<InputGroup className="mb-3">
 								<Form.Control
 									type="text"
@@ -182,7 +228,25 @@ export const Home = () => {
 								/>
 							</InputGroup>
 						</td>
-						<td style={{ width: "15%", verticalAlign: "top", textAlign: "center" }}>
+						<td style={{ width: "11%" }}>
+							<InputGroup className="mb-3">
+								<Form.Control
+									type="text"
+									placeholder="Language"
+									ref={inputLanguageRef}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ width: "7%" }}>
+							<InputGroup className="mb-3">
+								<Form.Control
+									type="number"
+									placeholder="Price"
+									ref={inputPriceRef}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ width: "10%", verticalAlign: "top", textAlign: "center" }}>
 							<Button variant="outline-success" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => addBook()}>Add Book</Button>
 						</td>
 					</tr>
@@ -193,20 +257,24 @@ export const Home = () => {
 						<th>Title</th>
 						<th>Author</th>
 						<th>Category</th>
-						<th>Action</th>
+						<th>Language</th>
+						<th>Price</th>
+						<th style={{ textAlign: "center" }}>Action</th>
 					</tr>
 				</thead>
 				<tbody>
 					{books.map(book => (
 						<tr key={book.id}>
 							<td><Link to={`/book/${book.id}`}>{book.id}</Link></td>
-							<td><LinkWithoutDecoration to={`/book/${book.id}`}>{book.title}</LinkWithoutDecoration></td>
-							<td>{book.author}</td>
-							<td>{book.category}</td>
-							<td>
+							<td><TextEditable value={book.title}    onInput={(input) => onEditHandler(book.id, "title",    input.currentTarget.textContent)} /></td>
+							<td><TextEditable value={book.author}   onInput={(input) => onEditHandler(book.id, "author",   input.currentTarget.textContent)} /></td>
+							<td><TextEditable value={book.category} onInput={(input) => onEditHandler(book.id, "category", input.currentTarget.textContent)} /></td>
+							<td><TextEditable value={book.language} onInput={(input) => onEditHandler(book.id, "language", input.currentTarget.textContent)} /></td>
+							<td><TextEditable value={book.price}    onInput={(input) => onEditHandler(book.id, "price",    input.currentTarget.textContent)} /></td>
+							<td style={{ textAlign: "center" }}>
 								<Button variant="outline-danger" size="sm" onClick={() => deleteBook(book)}>Delete</Button>
 								&nbsp;
-								<Button variant="outline-primary" size="sm" onClick={() => deleteBook(book)}>Update</Button>
+								<Button variant="outline-primary" size="sm" onClick={() => updateBook(book.id)}>Update</Button>
 							</td>
 						</tr>
 					))}
