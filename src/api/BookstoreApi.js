@@ -10,20 +10,19 @@ export class BookstoreApi {
 		return axios(withBaseUrl(`/${id}`));
 	}
 
-	static getAllBooks(title) {
-		let url;
-		if(title) {
-			url = withBaseUrl(`?title=${title}`);
-		} else {
-			url = withBaseUrl(``)
-		}
-
-		// console.log(url);
+	static getAllBooks(title, order) {
+		let path = '?title='+(title ? title : '')+'&order='+(order ? order : '');
+		let url = withBaseUrl(path);
+		console.log(url);
 		return axios(url);
 	}
 
 	static deleteBookById(id) {
 		return axios.delete(withBaseUrl(`/${id}`));
+	}
+
+	static createBook(newBook) {
+		return axios.post(withBaseUrl(``), newBook);
 	}
 	
 };

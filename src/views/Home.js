@@ -1,6 +1,8 @@
 import { Link, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
+import InputGroup from 'react-bootstrap/InputGroup';
 import { ToastContainer, toast } from "react-toastify";
 import { Dialog, DialogDismiss, DialogHeading } from "@ariakit/react";
 import { BookstoreApi } from "../api/BookstoreApi";
@@ -11,21 +13,85 @@ import "../styles/alertaConfirmacao.css";
 export const Home = () => {
 	const [searchParams] = useSearchParams();
 	const title = searchParams.get('title');
+	const order = searchParams.get('order');
 
 	const [books, setBooks] = useState([]);
-
 	const fetchBooks = async () => {
-		const res = await BookstoreApi.getAllBooks(title);
-		// console.log(res);
-		setBooks(res.data.resultado);
+		BookstoreApi.getAllBooks(title, order)
+			.then((response) => {
+				let result = response.data.codigo;
+				let message = response.data.mensagem;
+				if (result == 1) {
+					setBooks(res.data.resultado);
+				} else {
+					toast.error(`There was an error: ${message}`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+				}
+			}).catch((error) => {
+				toast.error(`There was an error: ${error.message}`, {
+					position: "top-center",
+					autoClose: 3000
+				});
+			});
 	}
-
 	useEffect(() => {
 		fetchBooks();
 	}, []);
 
 	const [alertaDeletar, setAlertaDeletar] = useState(false);
 	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
+
+	const inputTiteRef		= useRef(null);
+	const inputAuthorRef	= useRef(null);
+	const inputCategoryRef	= useRef(null);
+
+	const addBook = () => {
+		let newTitle		= inputTiteRef.current.value ? inputTiteRef.current.value.trim() : null;
+		let newAuthor		= inputAuthorRef.current.value ? inputAuthorRef.current.value.trim() : null;
+		let newCategory		= inputCategoryRef.current.value ? inputCategoryRef.current.value.trim() : null;
+		if(!newTitle || !newAuthor || !newCategory) {
+			toast.error(`Preencher os campos obrigatórios`, {
+				position: "top-center",
+				autoClose: 3000
+			});
+			return;
+		}
+
+		let newBook = {
+			title:		newTitle,
+			author:		newAuthor,
+			category:	newCategory
+		}
+		// console.log(newBook);
+
+		BookstoreApi.createBook(newBook)
+			.then((response) => {
+				let result = response.data.codigo;
+				let message = response.data.mensagem;
+				if (result == 1) {
+					toast.success(`Book '${newBook.title}' added successfully`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+					fetchBooks();
+					inputTiteRef.current.value		= "";
+					inputAuthorRef.current.value	= "";
+					inputCategoryRef.current.value	= "";
+				} else {
+					toast.error(`There was an error: ${message}`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+				}
+			}).catch((error) => {
+				toast.error(`There was an error: ${error.message}`, {
+					position: "top-center",
+					autoClose: 3000
+				});
+			});
+	}
 
 	const deleteBook = (book) => {
 		setAlertaDeletar(true);
@@ -34,16 +100,28 @@ export const Home = () => {
 
 	const confirmDeleteBook = () => {
 		BookstoreApi.deleteBookById(bookAlertaDeletar.id)
-			.then(() => {
-				console.log("deleted book id: " + bookAlertaDeletar.id);
-				toast.success(`Book '${bookAlertaDeletar.title}' deleted successfully`, {
+			.then((response) => {
+				let result = response.data.codigo;
+				let message = response.data.mensagem;
+				if (result == 1) {
+					toast.success(`Book '${bookAlertaDeletar.title}' deleted successfully`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+					fetchBooks();
+				} else {
+					toast.error(`There was an error: ${message}`, {
+						position: "top-center",
+						autoClose: 3000
+					});
+				}
+			}).catch((error) => {
+				toast.error(`There was an error: ${error.message}`, {
 					position: "top-center",
 					autoClose: 3000
 				});
-				fetchBooks();
+			}).finally(() => {
 				setAlertaDeletar(false);
-			}).catch((error) => {
-				console.log("error deleting book id: " + bookAlertaDeletar.id);
 			});
 	}
 
@@ -72,7 +150,43 @@ export const Home = () => {
 		<main>
 			<ToastContainer />
 			<AlertaConfirmacao />
+
 			<BooksTableContainer striped hover>
+				<thead>
+					<tr>
+						<td style={{ width: "5%" }}></td>
+						<td style={{ width: "45%" }}>
+							<InputGroup hasValidation className="mb-3">
+								<Form.Control
+									type="text"
+									placeholder="Title"
+									ref={inputTiteRef}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ width: "25%" }}>
+							<InputGroup className="mb-3">
+								<Form.Control
+									type="text"
+									placeholder="Author"
+									ref={inputAuthorRef}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ width: "10%" }}>
+							<InputGroup className="mb-3">
+								<Form.Control
+									type="text"
+									placeholder="Category"
+									ref={inputCategoryRef}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ width: "15%", verticalAlign: "top", textAlign: "center" }}>
+							<Button variant="outline-success" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => addBook()}>Add Book</Button>
+						</td>
+					</tr>
+				</thead>
 				<thead>
 					<tr>
 						<th>ID</th>
@@ -89,11 +203,16 @@ export const Home = () => {
 							<td><LinkWithoutDecoration to={`/book/${book.id}`}>{book.title}</LinkWithoutDecoration></td>
 							<td>{book.author}</td>
 							<td>{book.category}</td>
-							<td><Button variant="outline-danger" size="sm" onClick={() => deleteBook(book)}>Deletar</Button></td>
+							<td>
+								<Button variant="outline-danger" size="sm" onClick={() => deleteBook(book)}>Delete</Button>
+								&nbsp;
+								<Button variant="outline-primary" size="sm" onClick={() => deleteBook(book)}>Update</Button>
+							</td>
 						</tr>
 					))}
 				</tbody>
 			</BooksTableContainer>
-		</main>
+
+		</main >
 	)
 };
