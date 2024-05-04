@@ -4,12 +4,10 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import InputGroup from 'react-bootstrap/InputGroup';
 import { ToastContainer, toast } from "react-toastify";
-import { Dialog, DialogDismiss, DialogHeading } from "@ariakit/react";
-import { BookstoreApi } from "../api/BookstoreApi";
-import { LinkWithoutDecoration } from "../styles/LinkWithoutDecoration";
 import { BooksTableContainer } from "../styles/BooksTableContainer";
-import "../styles/alertaConfirmacao.css";
 import { TextEditable } from "../components/TextEditable";
+import { PopupAlertaDeletar } from "../components/PopupAlertaDeletar";
+import { BookstoreService } from "../services/BookstoreService";
 
 export const Home = () => {
 	const [searchParams] = useSearchParams();
@@ -20,32 +18,22 @@ export const Home = () => {
 	const [alertaDeletar, setAlertaDeletar] = useState(false);
 	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
 
-	const inputTiteRef     = useRef(null);
-	const inputAuthorRef   = useRef(null);
-	const inputCategoryRef = useRef(null);
-	const inputLanguageRef = useRef(null);
-	const inputPriceRef    = useRef(null);
+	const inputEditTitle    = useRef(null);
+	const inputEditAuthor   = useRef(null);
+	const inputEditCategory = useRef(null);
+	const inputEditLanguage = useRef(null);
+	const inputEditPrice    = useRef(null);
 
 	useEffect(() => {
 		fetchBooks();
 	}, []);
 
 	const fetchBooks = async () => {
-		BookstoreApi.getAllBooks(title, order)
+		BookstoreService.getAllBooks(title, order)
 			.then((response) => {
-				let result = response.data.codigo;
-				let message = response.data.mensagem;
-				let bookArray = response.data.resultado;
-				if (result == 1) {
-					setBooks(bookArray);
-				} else {
-					toast.error(`There was an error: ${message}`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-				}
+				setBooks(response);
 			}).catch((error) => {
-				toast.error(`There was an error: ${error.message}`, {
+				toast.error(error, {
 					position: "top-center",
 					autoClose: 3000
 				});
@@ -53,13 +41,14 @@ export const Home = () => {
 	}
 
 	const addBook = () => {
-		let newTitle = inputTiteRef.current.value        ? inputTiteRef.current.value.trim()     : null;
-		let newAuthor = inputAuthorRef.current.value     ? inputAuthorRef.current.value.trim()   : null;
-		let newCategory = inputCategoryRef.current.value ? inputCategoryRef.current.value.trim() : null;
-		let newLanguage = inputLanguageRef.current.value ? inputLanguageRef.current.value.trim() : null;
-		let newPrice = inputPriceRef.current.value       ? inputPriceRef.current.value.trim()    : null;
+		let newTitle    = inputEditTitle.current.value    ? inputEditTitle.current.value.trim()    : null;
+		let newAuthor   = inputEditAuthor.current.value   ? inputEditAuthor.current.value.trim()   : null;
+		let newCategory = inputEditCategory.current.value ? inputEditCategory.current.value.trim() : null;
+		let newLanguage = inputEditLanguage.current.value ? inputEditLanguage.current.value.trim() : null;
+		let newPrice    = inputEditPrice.current.value    ? inputEditPrice.current.value.trim()    : null;
+
 		if (!newTitle || !newAuthor || !newCategory || !newLanguage || !newPrice) {
-			toast.error(`Preencher os campos obrigatórios`, {
+			toast.error(`Preencher os campos obrigatórios!`, {
 				position: "top-center",
 				autoClose: 3000
 			});
@@ -72,62 +61,43 @@ export const Home = () => {
 			category: newCategory,
 			language: newLanguage,
 			price: newPrice
-		}
-		// console.log(newBook);
+		};
 
-		BookstoreApi.createBook(newBook)
-			.then((response) => {
-				let result = response.data.codigo;
-				let message = response.data.mensagem;
-				if (result == 1) {
-					toast.success(`Book '${newBook.title}' added successfully`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-					fetchBooks();
-					inputTiteRef.current.value     = "";
-					inputAuthorRef.current.value   = "";
-					inputCategoryRef.current.value = "";
-					inputLanguageRef.current.value = "";
-					inputPriceRef.current.value    = "";
-				} else {
-					toast.error(`There was an error: ${message}`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-				}
+		BookstoreService.addBook(newBook)
+			.then(response => {
+				toast.success(response, {
+					position: "top-center",
+					autoClose: 3000
+				});
+				fetchBooks();
+				inputEditTitle.current.value    = "";
+				inputEditAuthor.current.value   = "";
+				inputEditCategory.current.value = "";
+				inputEditLanguage.current.value = "";
+				inputEditPrice.current.value    = "";
 			}).catch((error) => {
-				toast.error(`There was an error: ${error.message}`, {
+				toast.error(error, {
 					position: "top-center",
 					autoClose: 3000
 				});
 			});
-	}
+	};
 
-	const deleteBook = (deleteBook) => {
+	const buttonDeleteBook = (deleteBook) => {
 		setAlertaDeletar(true);
 		setBookAlertaDeletar(deleteBook);
 	}
 
 	const confirmDeleteBook = () => {
-		BookstoreApi.deleteBookById(bookAlertaDeletar.id)
+		BookstoreService.deleteBookById(bookAlertaDeletar.id)
 			.then((response) => {
-				let result = response.data.codigo;
-				let message = response.data.mensagem;
-				if (result == 1) {
-					toast.success(`Book '${bookAlertaDeletar.title}' deleted successfully`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-					fetchBooks();
-				} else {
-					toast.error(`There was an error: ${message}`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-				}
+				toast.success(response, {
+					position: "top-center",
+					autoClose: 3000
+				});
+				fetchBooks();
 			}).catch((error) => {
-				toast.error(`There was an error: ${error.message}`, {
+				toast.error(error, {
 					position: "top-center",
 					autoClose: 3000
 				});
@@ -146,56 +116,40 @@ export const Home = () => {
 	}
 
 	const updateBook = (id) => {
+		if (!id) {
+			toast.error(`Invalid Book ID!`, {
+				position: "top-center",
+				autoClose: 3000
+			});
+			return;
+		}
+
 		let bookUpdate = books.find(book => book.id === id);
-		BookstoreApi.updateBookById(id, bookUpdate)
-			.then((response) => {
-				let result = response.data.codigo;
-				let message = response.data.mensagem;
-				if (result == 1) {
-					toast.success(`Book '${bookUpdate.title}' updated successfully`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-					fetchBooks();
-				} else {
-					toast.error(`There was an error: ${message}`, {
-						position: "top-center",
-						autoClose: 3000
-					});
-				}
+		BookstoreService.updateBookById(id, bookUpdate)
+			.then(response => {
+				toast.success(response, {
+					position: "top-center",
+					autoClose: 3000
+				});
+				fetchBooks();
 			}).catch((error) => {
-				toast.error(`There was an error: ${error.message}`, {
+				toast.error(error, {
 					position: "top-center",
 					autoClose: 3000
 				});
 			});
 	}
 
-	const AlertaConfirmacao = () => (
-		<Dialog
-			open={alertaDeletar}
-			onClose={() => setAlertaDeletar(false)}
-			getPersistentElements={() => document.querySelectorAll(".Toastify")}
-			backdrop={<div className="backdrop" />}
-			className="dialog"
-		>
-			<DialogHeading className="heading">Confirmar</DialogHeading>
-			<p className="description">
-				Deseja realmente deletar o livro '{bookAlertaDeletar?.title}'?
-			</p>
-			<div className="buttons">
-				<Button variant="outline-success" onClick={() => confirmDeleteBook()}>
-					Confirmar
-				</Button>
-				<DialogDismiss className="button secondary">Cancel</DialogDismiss>
-			</div>
-		</Dialog>
-	);
-
 	return (
 		<main>
 			<ToastContainer />
-			<AlertaConfirmacao />
+			<PopupAlertaDeletar
+				open={alertaDeletar}
+				onClose={() => setAlertaDeletar(false)}
+				getPersistentElements={() => document.querySelectorAll(".Toastify")}
+				bookTitle={bookAlertaDeletar?.title}
+				onClick={() => confirmDeleteBook()}
+			/>
 
 			<BooksTableContainer striped hover>
 				<thead>
@@ -206,7 +160,7 @@ export const Home = () => {
 								<Form.Control
 									type="text"
 									placeholder="Title"
-									ref={inputTiteRef}
+									ref={inputEditTitle}
 								/>
 							</InputGroup>
 						</td>
@@ -215,7 +169,7 @@ export const Home = () => {
 								<Form.Control
 									type="text"
 									placeholder="Author"
-									ref={inputAuthorRef}
+									ref={inputEditAuthor}
 								/>
 							</InputGroup>
 						</td>
@@ -224,7 +178,7 @@ export const Home = () => {
 								<Form.Control
 									type="text"
 									placeholder="Category"
-									ref={inputCategoryRef}
+									ref={inputEditCategory}
 								/>
 							</InputGroup>
 						</td>
@@ -233,7 +187,7 @@ export const Home = () => {
 								<Form.Control
 									type="text"
 									placeholder="Language"
-									ref={inputLanguageRef}
+									ref={inputEditLanguage}
 								/>
 							</InputGroup>
 						</td>
@@ -242,7 +196,7 @@ export const Home = () => {
 								<Form.Control
 									type="number"
 									placeholder="Price"
-									ref={inputPriceRef}
+									ref={inputEditPrice}
 								/>
 							</InputGroup>
 						</td>
@@ -272,7 +226,7 @@ export const Home = () => {
 							<td><TextEditable value={book.language} onInput={(input) => onEditHandler(book.id, "language", input.currentTarget.textContent)} /></td>
 							<td><TextEditable value={book.price}    onInput={(input) => onEditHandler(book.id, "price",    input.currentTarget.textContent)} /></td>
 							<td style={{ textAlign: "center" }}>
-								<Button variant="outline-danger" size="sm" onClick={() => deleteBook(book)}>Delete</Button>
+								<Button variant="outline-danger" size="sm" onClick={() => buttonDeleteBook(book)}>Delete</Button>
 								&nbsp;
 								<Button variant="outline-primary" size="sm" onClick={() => updateBook(book.id)}>Update</Button>
 							</td>
