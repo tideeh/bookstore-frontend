@@ -30,9 +30,9 @@ export const Home = () => {
 	const inputEditPrice    = useRef(null);
 
 	useEffect(() => {
-		console.log("useEffect currentPage "+currentPage);
+		console.log("useEffect currentPage: "+currentPage+" rowsPerPage: "+rowsPerPage);
 		fetchBooks();
-	}, [currentPage])
+	}, [currentPage, rowsPerPage])
 
 	const fetchBooks = async () => {
 		BookstoreService.getAllBooks(title, currentPage, rowsPerPage, order)
