@@ -52,15 +52,15 @@ export class BookstoreService {
 		});
 	}
 
-	static getAllBooks(title, order) {
+	static getAllBooks(title, page, size, order) {
 		return new Promise((resolve, reject) => {
-			BookstoreApi.getAllBooks(title, order)
+			BookstoreApi.getAllBooks(title, page, size, order)
 				.then((response) => {
 					let result = response.data.codigo;
 					let message = response.data.mensagem;
-					let bookArray = response.data.resultado;
+					let pageBook = response.data.resultado;
 					if (result == 1) {
-						resolve(bookArray);
+						resolve(pageBook);
 						return;
 					} else {
 						reject(`There was an error: ${message}`);

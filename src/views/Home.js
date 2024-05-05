@@ -8,6 +8,7 @@ import { BooksTableContainer } from "../styles/BooksTableContainer";
 import { TextEditable } from "../components/TextEditable";
 import { PopupAlertaDeletar } from "../components/PopupAlertaDeletar";
 import { BookstoreService } from "../services/BookstoreService";
+import { TablePaginationContainer } from "../styles/TablePaginationContainer";
 
 export const Home = () => {
 	const [searchParams] = useSearchParams();
@@ -17,6 +18,10 @@ export const Home = () => {
 	const [books, setBooks] = useState([]);
 	const [alertaDeletar, setAlertaDeletar] = useState(false);
 	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
+	const [currentPage, setCurrentPage] = useState(0);
+	const [rowsPerPage, setRowsPerPage] = useState(10);
+	const [totalPages, setTotalPages] = useState();
+	const [totalElements, setTotalElements] = useState(0);
 
 	const inputEditTitle    = useRef(null);
 	const inputEditAuthor   = useRef(null);
@@ -25,19 +30,31 @@ export const Home = () => {
 	const inputEditPrice    = useRef(null);
 
 	useEffect(() => {
+		console.log("useEffect currentPage "+currentPage);
 		fetchBooks();
-	}, []);
+	}, [currentPage])
 
 	const fetchBooks = async () => {
-		BookstoreService.getAllBooks(title, order)
+		BookstoreService.getAllBooks(title, currentPage, rowsPerPage, order)
 			.then((response) => {
-				setBooks(response);
+				setBooks(response.content);
+				setTotalPages(response.totalPages)
+				setTotalElements(response.totalElements)
 			}).catch((error) => {
 				toast.error(error, {
 					position: "top-center",
 					autoClose: 3000
 				});
 			});
+	}
+
+	const handleChangeRowsPerPage = (event) => {
+		setRowsPerPage(parseInt(event.target.value, 10));
+		setCurrentPage(0);
+	};
+
+	const handleChangePage = (event, page) => {
+		setCurrentPage(page)
 	}
 
 	const addBook = () => {
@@ -234,6 +251,18 @@ export const Home = () => {
 					))}
 				</tbody>
 			</BooksTableContainer>
+
+			<TablePaginationContainer
+				component="div"
+				count={totalElements}
+				page={currentPage}
+				onPageChange={(handleChangePage)}
+				rowsPerPage={rowsPerPage}
+				onRowsPerPageChange={(handleChangeRowsPerPage)}
+				showFirstButton
+				showLastButton
+			/>
+			{/* <Pagination count={totalPages} onChange={(event, page) => setCurrentPage(page)} color="primary" variant="outlined" shape="rounded" size="small" /> */}
 
 		</main >
 	)

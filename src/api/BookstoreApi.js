@@ -10,8 +10,8 @@ export class BookstoreApi {
 		return axios(withBaseUrl(`/${id}`));
 	}
 
-	static getAllBooks(title, order) {
-		let path = '?title='+(title ? title : '')+'&order='+(order ? order : '');
+	static getAllBooks(title, page, size, order) {
+		let path = '?title='+(title ? title : '')+'&page='+(page ? page : '')+'&size='+(size ? size : '')+'&order='+(order ? order : '');
 		let url = withBaseUrl(path);
 		// console.log(url);
 		return axios(url);
