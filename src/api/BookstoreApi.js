@@ -25,8 +25,8 @@ export class BookstoreApi {
 		return axios.post(withBaseUrl(``), newBook);
 	}
 
-	static updateBookById(id, book) {
-		return axios.put(withBaseUrl(`/${id}`), book);
+	static updateBook(book) {
+		return axios.put(withBaseUrl(``), book);
 	}
 	
 };

@@ -73,18 +73,14 @@ export class BookstoreService {
 		});
 	}
 
-	static updateBookById(id, bookUpdate) {
+	static updateBook(bookUpdate) {
 		return new Promise((resolve, reject) => {
-			if (!id) {
-				reject('Invalid Book ID!');
-				return;
-			}
 			if (!bookUpdate) {
 				reject('Invalid Book!');
 				return;
 			}
 
-			BookstoreApi.updateBookById(id, bookUpdate)
+			BookstoreApi.updateBook(bookUpdate)
 				.then((response) => {
 					let result = response.data.codigo;
 					let message = response.data.mensagem;

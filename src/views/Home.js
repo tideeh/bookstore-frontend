@@ -132,17 +132,8 @@ export const Home = () => {
 		});
 	}
 
-	const updateBook = (id) => {
-		if (!id) {
-			toast.error(`Invalid Book ID!`, {
-				position: "top-center",
-				autoClose: 3000
-			});
-			return;
-		}
-
-		let bookUpdate = books.find(book => book.id === id);
-		BookstoreService.updateBookById(id, bookUpdate)
+	const updateBook = (book) => {
+		BookstoreService.updateBook(book)
 			.then(response => {
 				toast.success(response, {
 					position: "top-center",
@@ -245,7 +236,7 @@ export const Home = () => {
 							<td style={{ textAlign: "center" }}>
 								<Button variant="outline-danger" size="sm" onClick={() => buttonDeleteBook(book)}>Delete</Button>
 								&nbsp;
-								<Button variant="outline-primary" size="sm" onClick={() => updateBook(book.id)}>Update</Button>
+								<Button variant="outline-primary" size="sm" onClick={() => updateBook(book)}>Update</Button>
 							</td>
 						</tr>
 					))}
