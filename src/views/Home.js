@@ -32,9 +32,8 @@ export const Home = () => {
 	const inputSearchTitle		= useRef(null);
 
 	useEffect(() => {
-		console.log("useEffect >", "searchTitle:", '"'+searchTitle+'"', "currentPage:", currentPage, " rowsPerPage:", rowsPerPage, "order:", orderTitle);
 		fetchBooks();
-	}, [currentPage, rowsPerPage, searchTitle, orderTitle])
+	}, [searchTitle, currentPage, rowsPerPage, orderTitle])
 
 	const fetchBooks = async () => {
 		BookstoreService.getAllBooks(searchTitle, currentPage, rowsPerPage, orderTitle)
@@ -42,6 +41,7 @@ export const Home = () => {
 				setBooks(response.content);
 				// setTotalPages(response.totalPages)
 				setTotalElements(response.totalElements)
+				console.log("fetchBooks =>", "searchTitle:", '"'+searchTitle+'"', "currentPage:", currentPage, " rowsPerPage:", rowsPerPage, "order:", '"'+orderTitle+'"', "totalElements:", response.totalElements);
 			}).catch((error) => {
 				toast.error(error, {
 					position: "top-center",
@@ -222,16 +222,19 @@ export const Home = () => {
 					<tr>
 						<td style={{ width: "5%" }}></td>
 						<td style={{ width: "35%" }}>
+							<Form.Label htmlFor="input-search-title">Search Title:</Form.Label>
 							<InputGroup>
 								<Form.Control
+									id="input-search-title"
 									type="text"
 									placeholder="Search Title"
 									ref={inputSearchTitle}
+									onChange={() => searchBook()}
 								/>
 							</InputGroup>
 						</td>
 						<td style={{ verticalAlign: "middle", textAlign: "center" }}>
-							<Button variant="outline-secondary" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => searchBook()}>Search</Button>
+							{/* <Button variant="outline-secondary" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => searchBook()}>Search</Button> */}
 						</td>
 						<td></td>
 						<td></td>
