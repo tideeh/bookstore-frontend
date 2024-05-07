@@ -11,34 +11,36 @@ import { BookstoreService } from "../services/BookstoreService";
 import { TablePaginationContainer } from "../styles/TablePaginationContainer";
 
 export const Home = () => {
-	const [searchParams] = useSearchParams();
-	const title = searchParams.get('title');
-	const order = searchParams.get('order');
+	// const [searchParams] = useSearchParams();
+	// const order = searchParams.get('order');
 
-	const [books, setBooks] = useState([]);
-	const [alertaDeletar, setAlertaDeletar] = useState(false);
-	const [bookAlertaDeletar, setBookAlertaDeletar] = useState();
-	const [currentPage, setCurrentPage] = useState(0);
-	const [rowsPerPage, setRowsPerPage] = useState(10);
-	const [totalPages, setTotalPages] = useState();
-	const [totalElements, setTotalElements] = useState(0);
+	const [books,				setBooks]					= useState([]);
+	const [alertaDeletar,		setAlertaDeletar]			= useState(false);
+	const [bookAlertaDeletar,	setBookAlertaDeletar]		= useState();
+	const [currentPage,			setCurrentPage]				= useState(0);
+	const [rowsPerPage,			setRowsPerPage]				= useState(10);
+	// const [totalPages,		setTotalPages]				= useState();
+	const [totalElements,		setTotalElements]			= useState(0);
+	const [searchTitle,			setSearchTitle]				= useState("");
+	const [orderTitle,			setOrderTitle]				= useState("asc");
 
-	const inputEditTitle    = useRef(null);
-	const inputEditAuthor   = useRef(null);
-	const inputEditCategory = useRef(null);
-	const inputEditLanguage = useRef(null);
-	const inputEditPrice    = useRef(null);
+	const inputEditTitle		= useRef(null);
+	const inputEditAuthor		= useRef(null);
+	const inputEditCategory		= useRef(null);
+	const inputEditLanguage		= useRef(null);
+	const inputEditPrice		= useRef(null);
+	const inputSearchTitle		= useRef(null);
 
 	useEffect(() => {
-		console.log("useEffect currentPage: "+currentPage+" rowsPerPage: "+rowsPerPage);
+		console.log("useEffect >", "searchTitle:", '"'+searchTitle+'"', "currentPage:", currentPage, " rowsPerPage:", rowsPerPage, "order:", orderTitle);
 		fetchBooks();
-	}, [currentPage, rowsPerPage])
+	}, [currentPage, rowsPerPage, searchTitle, orderTitle])
 
 	const fetchBooks = async () => {
-		BookstoreService.getAllBooks(title, currentPage, rowsPerPage, order)
+		BookstoreService.getAllBooks(searchTitle, currentPage, rowsPerPage, orderTitle)
 			.then((response) => {
 				setBooks(response.content);
-				setTotalPages(response.totalPages)
+				// setTotalPages(response.totalPages)
 				setTotalElements(response.totalElements)
 			}).catch((error) => {
 				toast.error(error, {
@@ -148,6 +150,11 @@ export const Home = () => {
 			});
 	}
 
+	const searchBook = () => {
+		let searchTitle = inputSearchTitle.current.value ? inputSearchTitle.current.value : "";
+		setSearchTitle(searchTitle);
+	}
+
 	return (
 		<main>
 			<ToastContainer />
@@ -164,7 +171,7 @@ export const Home = () => {
 					<tr>
 						<td style={{ width: "5%" }}></td>
 						<td style={{ width: "35%" }}>
-							<InputGroup hasValidation className="mb-3">
+							<InputGroup>
 								<Form.Control
 									type="text"
 									placeholder="Title"
@@ -173,7 +180,7 @@ export const Home = () => {
 							</InputGroup>
 						</td>
 						<td style={{ width: "17%" }}>
-							<InputGroup className="mb-3">
+							<InputGroup>
 								<Form.Control
 									type="text"
 									placeholder="Author"
@@ -182,7 +189,7 @@ export const Home = () => {
 							</InputGroup>
 						</td>
 						<td style={{ width: "15%" }}>
-							<InputGroup className="mb-3">
+							<InputGroup>
 								<Form.Control
 									type="text"
 									placeholder="Category"
@@ -191,7 +198,7 @@ export const Home = () => {
 							</InputGroup>
 						</td>
 						<td style={{ width: "11%" }}>
-							<InputGroup className="mb-3">
+							<InputGroup>
 								<Form.Control
 									type="text"
 									placeholder="Language"
@@ -200,7 +207,7 @@ export const Home = () => {
 							</InputGroup>
 						</td>
 						<td style={{ width: "7%" }}>
-							<InputGroup className="mb-3">
+							<InputGroup>
 								<Form.Control
 									type="number"
 									placeholder="Price"
@@ -208,15 +215,41 @@ export const Home = () => {
 								/>
 							</InputGroup>
 						</td>
-						<td style={{ width: "10%", verticalAlign: "top", textAlign: "center" }}>
+						<td style={{ width: "10%", verticalAlign: "middle", textAlign: "center" }}>
 							<Button variant="outline-success" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => addBook()}>Add Book</Button>
 						</td>
 					</tr>
+					<tr>
+						<td style={{ width: "5%" }}></td>
+						<td style={{ width: "35%" }}>
+							<InputGroup>
+								<Form.Control
+									type="text"
+									placeholder="Search Title"
+									ref={inputSearchTitle}
+								/>
+							</InputGroup>
+						</td>
+						<td style={{ verticalAlign: "middle", textAlign: "center" }}>
+							<Button variant="outline-secondary" size="sm" style={{ width: "100%", padding: "inherit" }} onClick={() => searchBook()}>Search</Button>
+						</td>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
 				</thead>
 				<thead>
-					<tr>
+					<tr style={{ verticalAlign: "middle"}}>
 						<th>ID</th>
-						<th>Title</th>
+						<th style={{ display: "flex", alignItems: "center" }}>
+							<div>Title</div>
+							&nbsp;&nbsp;
+							<div>
+								<div style={{cursor: "pointer"}} onClick={() => setOrderTitle("desc")}>&#8593;</div>
+								<div style={{cursor: "pointer"}} onClick={() => setOrderTitle("asc")}>&#8595;</div>
+							</div>
+						</th>
 						<th>Author</th>
 						<th>Category</th>
 						<th>Language</th>
